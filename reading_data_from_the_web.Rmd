@@ -1,0 +1,81 @@
+---
+title: "reading_data_from_the_web"
+author: "Matthew Perrotta"
+date: "October 11, 2018"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(httr)
+```
+
+#extract table
+
+get the HTML
+
+```{r}
+url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+drug_use_xml = read_html(url)
+
+drug_use_xml
+```
+
+get tables from the HTML
+
+```{r}
+drug_use_xml %>% 
+  html_nodes(css = 'table') %>% 
+  .[[1]] %>% 
+  html_table() %>% 
+  slice(-1) %>% 
+  as.tibble()
+```
+
+```{r}
+url2 = 'https://www.bestplaces.net/cost_of_living/city/new_york/new_york'
+
+cost_living = read_html(url2)
+
+cost_living %>% 
+  html_nodes(css = 'table') %>% 
+  .[[1]] %>% 
+  html_table(header = T)
+  
+  
+```
+
+Harry Potter stuff
+
+```{r}
+hpsaga_html = read_html("https://www.imdb.com/list/ls000630791/")
+
+titles = hpsaga_html %>% 
+  html_nodes(css = '.lister-item-header a') %>% 
+  html_text()
+
+money = hpsaga_html %>% 
+  html_nodes(css = '.text-muted .ghost~ .text-muted+ span') %>% 
+  html_text()
+
+hpsaga_df = tibble(
+  title = titles,
+  rev = money
+)
+```
+
+
+```{r}
+nyc_water = GET("https://data.cityofnewyork.us/resource/waf7-5gvc.csv") %>% 
+  content("parsed")
+```
+As JSON
+
+```{r}
+nyc_water = GET("https://data.cityofnewyork.us/resource/waf7-5gvc.json") %>% 
+  content("text") %>%
+  jsonlite::fromJSON() %>%
+  as_tibble()
+```
+
